@@ -5,7 +5,7 @@ use std::time::Instant;
 use itertools::Itertools;
 use regex::Regex;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 struct Item {
     cost: i64,
     damage: f64,
@@ -27,7 +27,7 @@ impl Item {
 }
 
 
-fn shop() -> Vec<Vec<Item>> {
+fn shop() -> Vec<Vec<Option<Item>>> {
     let shop_strs: Vec<String> = Vec::from_iter("
         Weapons:    Cost  Damage  Armor
         Dagger        8     4       0
@@ -59,12 +59,16 @@ fn shop() -> Vec<Vec<Item>> {
         }
     }));
 
-    let mut items: Vec<Vec<Item>> = Vec::new();
+    let mut items: Vec<Vec<Option<Item>>> = Vec::new();
     for line in shop_strs {
         if line.contains(':') {
-            items.push(Vec::new());
+            if items.len() > 0 {
+                items.push(vec![None]);
+            } else {
+                items.push(Vec::new());
+            }
         } else {
-            items.iter_mut().last().unwrap().push(Item::new(&line));
+            items.iter_mut().last().unwrap().push(Some(Item::new(&line)));
         }
     }
 
@@ -76,6 +80,7 @@ struct Player {
     hp: f64,
     damage: f64,
     armor: f64,
+    cost: i64,
 }
 
 impl Default for Player {
@@ -84,6 +89,7 @@ impl Default for Player {
             hp: 100.0,
             damage: 0.0,
             armor: 0.0,
+            cost: 0,
         }
     }
 }
@@ -118,73 +124,63 @@ fn part1(contents: String) -> i64 {
             hp: stats.next().unwrap(),
             damage: stats.next().unwrap(),
             armor: stats.next().unwrap(),
+            ..Default::default()
         }
     };
     
     let mut least_gold: i64 = i64::MAX;
+    let mut player = Player {..Default::default()};
     for weapon in &shop[0] {
+        player.damage += weapon.as_ref().unwrap().damage;
+        player.cost += weapon.as_ref().unwrap().cost;
         for armor in &shop[1] {
-            for rings in shop[2].iter().combinations(2) {
-                let mut cost = weapon.cost;
-                let mut player = Player {
-                    damage: weapon.damage,
-                    ..Default::default()
-                };
-                if sim_fight(&player, &boss) {
-                    least_gold = least_gold.min(cost);
+            if armor.is_some() {
+                player.armor += armor.as_ref().unwrap().armor;
+                player.cost += armor.as_ref().unwrap().cost;
+            }
+
+            for rings in shop[2].iter().combinations_with_replacement(2) {
+                let r1 = rings[0];
+                let r2 = rings[1];
+                if r1.is_some() && r2.is_some() && r1.as_ref().unwrap() == r2.as_ref().unwrap() {
+                    continue;
                 }
 
-                cost += armor.cost;
-                player.armor += armor.armor;
-                if sim_fight(&player, &boss) {
-                    least_gold = least_gold.min(cost);
+                if r1.is_some() {
+                    player.armor += r1.as_ref().unwrap().armor;
+                    player.damage += r1.as_ref().unwrap().damage;
+                    player.cost += r1.as_ref().unwrap().cost;
                 }
-                
-                for ring in &rings {
-                    cost += ring.cost;
-                    player.damage += ring.damage;
-                    player.armor += ring.armor;
-                    if sim_fight(&player, &boss) {
-                        least_gold = least_gold.min(cost);
-                    }
-                    cost -= ring.cost;
-                    player.damage -= ring.damage;
-                    player.armor -= ring.armor;
+                if r2.is_some() {
+                    player.armor += r2.as_ref().unwrap().armor;
+                    player.damage += r2.as_ref().unwrap().damage;
+                    player.cost += r2.as_ref().unwrap().cost;
                 }
 
-                cost += rings.iter().map(|r| r.cost).sum::<i64>();
-                player.damage += rings.iter().map(|r| r.damage).sum::<f64>();
-                player.armor += rings.iter().map(|r| r.armor).sum::<f64>();
                 if sim_fight(&player, &boss) {
-                    least_gold = least_gold.min(cost);
-                }
-                cost -= rings.iter().map(|r| r.cost).sum::<i64>();
-                player.damage -= rings.iter().map(|r| r.damage).sum::<f64>();
-                player.armor -= rings.iter().map(|r| r.armor).sum::<f64>();
-
-                cost -= armor.cost;
-                player.armor -= armor.armor;
-                
-                for ring in &rings {
-                    cost += ring.cost;
-                    player.damage += ring.damage;
-                    player.armor += ring.armor;
-                    if sim_fight(&player, &boss) {
-                        least_gold = least_gold.min(cost);
-                    }
-                    cost -= ring.cost;
-                    player.damage -= ring.damage;
-                    player.armor -= ring.armor;
+                    least_gold = least_gold.min(player.cost);
                 }
 
-                cost += rings.iter().map(|r| r.cost).sum::<i64>();
-                player.damage += rings.iter().map(|r| r.damage).sum::<f64>();
-                player.armor += rings.iter().map(|r| r.armor).sum::<f64>();
-                if sim_fight(&player, &boss) {
-                    least_gold = least_gold.min(cost);
+                if r1.is_some() {
+                    player.armor -= r1.as_ref().unwrap().armor;
+                    player.damage -= r1.as_ref().unwrap().damage;
+                    player.cost -= r1.as_ref().unwrap().cost;
+                }
+                if r2.is_some() {
+                    player.armor -= r2.as_ref().unwrap().armor;
+                    player.damage -= r2.as_ref().unwrap().damage;
+                    player.cost -= r2.as_ref().unwrap().cost;
                 }
             }
-        } 
+        
+            if armor.is_some() {
+                player.armor -= armor.as_ref().unwrap().armor;
+                player.cost -= armor.as_ref().unwrap().cost;
+            }
+        }
+
+        player.damage -= weapon.as_ref().unwrap().damage;
+        player.cost -= weapon.as_ref().unwrap().cost;
     }
 
     return least_gold;
@@ -205,73 +201,63 @@ fn part2(contents: String) -> i64 {
             hp: stats.next().unwrap(),
             damage: stats.next().unwrap(),
             armor: stats.next().unwrap(),
+            ..Default::default()
         }
     };
     
     let mut most_gold: i64 = 0;
+    let mut player = Player {..Default::default()};
     for weapon in &shop[0] {
+        player.damage += weapon.as_ref().unwrap().damage;
+        player.cost += weapon.as_ref().unwrap().cost;
         for armor in &shop[1] {
-            for rings in shop[2].iter().combinations(2) {
-                let mut cost = weapon.cost;
-                let mut player = Player {
-                    damage: weapon.damage,
-                    ..Default::default()
-                };
-                if !sim_fight(&player, &boss) {
-                    most_gold = most_gold.max(cost);
+            if armor.is_some() {
+                player.armor += armor.as_ref().unwrap().armor;
+                player.cost += armor.as_ref().unwrap().cost;
+            }
+
+            for rings in shop[2].iter().combinations_with_replacement(2) {
+                let r1 = rings[0];
+                let r2 = rings[1];
+                if r1.is_some() && r2.is_some() && r1.as_ref().unwrap() == r2.as_ref().unwrap() {
+                    continue;
                 }
 
-                cost += armor.cost;
-                player.armor += armor.armor;
-                if !sim_fight(&player, &boss) {
-                    most_gold = most_gold.max(cost);
+                if r1.is_some() {
+                    player.armor += r1.as_ref().unwrap().armor;
+                    player.damage += r1.as_ref().unwrap().damage;
+                    player.cost += r1.as_ref().unwrap().cost;
                 }
-                
-                for ring in &rings {
-                    cost += ring.cost;
-                    player.damage += ring.damage;
-                    player.armor += ring.armor;
-                    if !sim_fight(&player, &boss) {
-                        most_gold = most_gold.max(cost);
-                    }
-                    cost -= ring.cost;
-                    player.damage -= ring.damage;
-                    player.armor -= ring.armor;
+                if r2.is_some() {
+                    player.armor += r2.as_ref().unwrap().armor;
+                    player.damage += r2.as_ref().unwrap().damage;
+                    player.cost += r2.as_ref().unwrap().cost;
                 }
 
-                cost += rings.iter().map(|r| r.cost).sum::<i64>();
-                player.damage += rings.iter().map(|r| r.damage).sum::<f64>();
-                player.armor += rings.iter().map(|r| r.armor).sum::<f64>();
                 if !sim_fight(&player, &boss) {
-                    most_gold = most_gold.max(cost);
-                }
-                cost -= rings.iter().map(|r| r.cost).sum::<i64>();
-                player.damage -= rings.iter().map(|r| r.damage).sum::<f64>();
-                player.armor -= rings.iter().map(|r| r.armor).sum::<f64>();
-
-                cost -= armor.cost;
-                player.armor -= armor.armor;
-                
-                for ring in &rings {
-                    cost += ring.cost;
-                    player.damage += ring.damage;
-                    player.armor += ring.armor;
-                    if !sim_fight(&player, &boss) {
-                        most_gold = most_gold.max(cost);
-                    }
-                    cost -= ring.cost;
-                    player.damage -= ring.damage;
-                    player.armor -= ring.armor;
+                    most_gold = most_gold.max(player.cost);
                 }
 
-                cost += rings.iter().map(|r| r.cost).sum::<i64>();
-                player.damage += rings.iter().map(|r| r.damage).sum::<f64>();
-                player.armor += rings.iter().map(|r| r.armor).sum::<f64>();
-                if !sim_fight(&player, &boss) {
-                    most_gold = most_gold.max(cost);
+                if r1.is_some() {
+                    player.armor -= r1.as_ref().unwrap().armor;
+                    player.damage -= r1.as_ref().unwrap().damage;
+                    player.cost -= r1.as_ref().unwrap().cost;
+                }
+                if r2.is_some() {
+                    player.armor -= r2.as_ref().unwrap().armor;
+                    player.damage -= r2.as_ref().unwrap().damage;
+                    player.cost -= r2.as_ref().unwrap().cost;
                 }
             }
-        } 
+        
+            if armor.is_some() {
+                player.armor -= armor.as_ref().unwrap().armor;
+                player.cost -= armor.as_ref().unwrap().cost;
+            }
+        }
+
+        player.damage -= weapon.as_ref().unwrap().damage;
+        player.cost -= weapon.as_ref().unwrap().cost;
     }
 
     return most_gold;
