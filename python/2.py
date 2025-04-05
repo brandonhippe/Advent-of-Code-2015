@@ -67,7 +67,7 @@ def main(input_path: Optional[Path | str]=None, verbose: bool=False) -> Tuple[Tu
     with open(input_path, encoding='UTF-8') as f:
         data = [line.strip('\n') for line in f.readlines()]
         
-    boxes = [list(sorted(int(x) for x in re.findall('\d+', line))) for line in data]
+    boxes = [list(sorted(int(x) for x in re.findall(r'\d+', line))) for line in data]
        
     with Timer() as p1_time:
         p1 = part1(boxes)

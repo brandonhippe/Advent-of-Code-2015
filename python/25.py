@@ -12,7 +12,7 @@ def part1(data):
     """ 2015 Day 25 Part 1
     """
 
-    pos = [int(x) for x in re.findall('\d+', data[0])]
+    pos = [int(x) for x in re.findall(r'\d+', data[0])]
     diagIndex = triangle(sum(pos) - 1) - (sum(pos) - 1 - pos[1])
     return (20151125 * pow(252533, diagIndex - 1, 33554393)) % 33554393
 

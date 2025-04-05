@@ -23,7 +23,7 @@ def part1(data):
 
     onLights = set()
     for line in data:
-        lowX, lowY, highX, highY = [int(x) for x in re.findall('\d+', line)]
+        lowX, lowY, highX, highY = [int(x) for x in re.findall(r'\d+', line)]
         for y in range(lowY, highY + 1):
             for x in range(lowX, highX + 1):
                 if (x, y) in onLights:
@@ -49,7 +49,7 @@ def part2(data):
 
     onLights = defaultdict(lambda: 0)
     for line in data:
-        lowX, lowY, highX, highY = [int(x) for x in re.findall('\d+', line)]
+        lowX, lowY, highX, highY = [int(x) for x in re.findall(r'\d+', line)]
         for y in range(lowY, highY + 1):
             for x in range(lowX, highX + 1):
                 if 'on' in line:

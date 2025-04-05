@@ -37,14 +37,14 @@ def part1(data):
     """ 2015 Day 21 Part 1
     """
 
-    boss_hp, boss_damage, boss_armor = [[int(x) for x in re.findall('\d+', line)][0] for line in data[:3]]
+    boss_hp, boss_damage, boss_armor = [[int(x) for x in re.findall(r'\d+', line)][0] for line in data[:3]]
     
     shop = {"Weapons:": {}, "Armor:": {}, "Rings:": {}}
     for line in SHOP.splitlines():
         if len(line) == 0:
             continue
 
-        line = re.split('\s\s+', line)
+        line = re.split(r'\s\s+', line)
         if ':' in line[0]:
             current = line[0]
         else:
@@ -69,14 +69,14 @@ def part2(data):
     """ 2015 Day 21 Part 2
     """
 
-    boss_hp, boss_damage, boss_armor = [[int(x) for x in re.findall('\d+', line)][0] for line in data[:3]]
+    boss_hp, boss_damage, boss_armor = [[int(x) for x in re.findall(r'\d+', line)][0] for line in data[:3]]
     
     shop = {"Weapons:": {}, "Armor:": {}, "Rings:": {}}
     for line in SHOP.splitlines():
         if len(line) == 0:
             continue
 
-        line = re.split('\s\s+', line)
+        line = re.split(r'\s\s+', line)
         if ':' in line[0]:
             current = line[0]
         else:

@@ -19,7 +19,7 @@ def part1(data):
 
     lines = []
     for i, line in enumerate(data):
-        line = re.sub('lose ', 'gain -', re.sub('\.', '', line)).split(' ')
+        line = re.sub('lose ', 'gain -', re.sub(r'\.', '', line)).split(' ')
         lines.append([line[0], int(line[3]), line[-1]])
 
     neighbors = {line[0]: {} for line in lines}
@@ -44,7 +44,7 @@ def part2(data):
 
     lines = []
     for i, line in enumerate(data):
-        line = re.sub('lose ', 'gain -', re.sub('\.', '', line)).split(' ')
+        line = re.sub('lose ', 'gain -', re.sub(r'\.', '', line)).split(' ')
         lines.append([line[0], int(line[3]), line[-1]])
 
     neighbors = {line[0]: {} for line in lines}

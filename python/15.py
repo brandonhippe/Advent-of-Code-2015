@@ -11,7 +11,7 @@ from itertools import product
 
 class Ingredient:
     def __init__(self, text):
-        self.capacity, self.durability, self.flavor, self.texture, self.calories = [int(x) for x in re.findall('-?\d+', text)]
+        self.capacity, self.durability, self.flavor, self.texture, self.calories = [int(x) for x in re.findall(r'-?\d+', text)]
 
 
 def part1(data):

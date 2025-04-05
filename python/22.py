@@ -12,14 +12,14 @@ def part1(data):
     """ 2015 Day 22 Part 1
     """
 
-    return simulateP1([50, 500], [[int(x) for x in re.findall('\d+', line)][0] for line in data], [])
+    return simulateP1([50, 500], [[int(x) for x in re.findall(r'\d+', line)][0] for line in data], [])
 
 
 def part2(data):
     """ 2015 Day 22 Part 2
     """
 
-    return simulateP2([50, 500], [[int(x) for x in re.findall('\d+', line)][0] for line in data], [])
+    return simulateP2([50, 500], [[int(x) for x in re.findall(r'\d+', line)][0] for line in data], [])
 
 
 def applyEffects(hp, mana, boss_hp, effects):

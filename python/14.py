@@ -11,7 +11,7 @@ import re
 class Reindeer:
     def __init__(self, text):
         self.name = text.split(' ')[0]
-        self.speed, self.duration, self.rest = [int(x) for x in re.findall('\d+', text)]
+        self.speed, self.duration, self.rest = [int(x) for x in re.findall(r'\d+', text)]
 
     def distance(self, time):
         d = 0
