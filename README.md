@@ -3,7 +3,7 @@
 # brandonhippe's Advent of Code Solutions for 2015
 <!-- #{(year_tiles)} -->
 <h1 align="center">
-  2015 - 50 ⭐ - Rust/Python
+  2015 - 50 ⭐ - Python/Rust
 </h1>
 <a href="python/1.py">
   <img src=".tiles/images/2015/01.png" width="161px">
